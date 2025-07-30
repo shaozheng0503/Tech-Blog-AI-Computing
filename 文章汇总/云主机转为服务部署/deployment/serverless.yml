@@ -1,0 +1,149 @@
+service: user-management-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: ${opt:region, 'us-west-2'}
+  stage: ${opt:stage, 'dev'}
+  timeout: 30
+  memorySize: 256
+  architecture: x86_64
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    ENVIRONMENT: ${self:provider.stage}
+    USER_DATA_FILE: /tmp/users.json
+    LOG_LEVEL: INFO
+    
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: 
+            - "arn:aws:logs:${self:provider.region}:*:log-group:/aws/lambda/*:*:*"
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+          Resource: 
+            - "arn:aws:s3:::${self:service}-${self:provider.stage}-data/*"
+
+functions:
+  api:
+    handler: src.handler.lambda_handler
+    description: "用户管理API - 主要处理器"
+    events:
+      - http:
+          path: /
+          method: ANY
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+
+plugins:
+  - serverless-python-requirements
+  - serverless-plugin-warmup
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    zip: true
+    slim: true
+    strip: false
+    noDeps: false
+    useStaticCache: true
+    useDownloadCache: true
+    cacheLocation: ./.requirements-cache
+    pipCmdExtraArgs:
+      - --cache-dir
+      - ./.pip-cache
+    fileName: requirements.txt
+    
+  warmup:
+    default:
+      enabled: true
+      events:
+        - schedule: 'rate(5 minutes)'
+      timeout: 10
+      prewarm: true
+
+package:
+  individually: false
+  exclude:
+    - node_modules/**
+    - .git/**
+    - .pytest_cache/**
+    - tests/**
+    - notebooks/**
+    - "*.pyc"
+    - "**/__pycache__/**"
+    - .requirements-cache/**
+    - .pip-cache/**
+    - "*.md"
+    - ".env*"
+  include:
+    - src/**
+    - deployment/requirements.txt
+
+resources:
+  Resources:
+    # S3 bucket for data storage (optional)
+    DataBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-${self:provider.stage}-data
+        VersioningConfiguration:
+          Status: Enabled
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+          
+    # CloudWatch Log Group
+    ApiLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: '/aws/lambda/${self:service}-${self:provider.stage}-api'
+        RetentionInDays: 14
+
+  Outputs:
+    ApiUrl:
+      Description: "API Gateway endpoint URL"
+      Value:
+        Fn::Join:
+          - ''
+          - - 'https://'
+            - Ref: ApiGatewayRestApi
+            - '.execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}'
+    
+    DataBucketName:
+      Description: "S3 bucket for data storage"
+      Value:
+        Ref: DataBucket 
