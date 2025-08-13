@@ -1,0 +1,881 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ima.copilot产品迭代规划：打造国民级AI知识工作台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a1a1a',
+                        secondary: '#f5f5f0',
+                        accent: '#d4af37',
+                        muted: '#6b7280',
+                        background: '#fefefe'
+                    },
+                    fontFamily: {
+                        'serif': ['Noto Serif SC', 'serif'],
+                        'sans': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-overlay {
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(26, 26, 26, 0.7) 100%);
+        }
+        
+        .text-gradient {
+            background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .citation-link {
+            color: #d4af37;
+            text-decoration: none;
+            border-bottom: 1px dotted #d4af37;
+            transition: all 0.2s ease;
+        }
+        
+        .citation-link:hover {
+            background-color: rgba(212, 175, 55, 0.1);
+            border-bottom-style: solid;
+        }
+        
+        .toc-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: rgba(245, 245, 240, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid #e5e7eb;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+        
+        .toc-link {
+            display: block;
+            padding: 0.5rem 0;
+            color: #4b5563;
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .toc-link:hover {
+            color: #d4af37;
+            border-left-color: #d4af37;
+            padding-left: 0.5rem;
+        }
+        
+        .toc-link.active {
+            color: #d4af37;
+            border-left-color: #d4af37;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 1024px) {
+            .toc-fixed {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .toc-fixed.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #d4af37 50%, transparent 100%);
+            margin: 4rem 0;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(212, 175, 55, 0.02) 100%);
+            border-left: 4px solid #d4af37;
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 1.5rem;
+            height: 60vh;
+        }
+        
+        .bento-main {
+            grid-row: 1 / 3;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bento-side-top {
+            background: rgba(245, 245, 240, 0.8);
+        }
+        
+        .bento-side-bottom {
+            background: rgba(26, 26, 26, 0.05);
+        }
+        
+        .scroll-indicator {
+            position: fixed;
+            top: 0;
+            left: 280px;
+            right: 0;
+            height: 3px;
+            background: rgba(212, 175, 55, 0.2);
+            z-index: 999;
+        }
+        
+        .scroll-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37 0%, #f4d03f 100%);
+            transition: width 0.1s ease;
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        body {
+            overflow-x: hidden;
+        }
+        
+        @media (max-width: 768px) {
+            .bento-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                height: auto;
+            }
+            
+            .bento-main {
+                grid-row: 1;
+                min-height: 300px;
+            }
+            
+            .section-divider {
+                margin: 2rem 0;
+            }
+            
+            .fade-in {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+    </style>
+  </head>
+
+  <body class="bg-background text-primary font-sans">
+    <!-- Scroll Progress Indicator -->
+    <div class="scroll-indicator">
+      <div class="scroll-progress" id="scrollProgress"></div>
+    </div>
+
+    <!-- Table of Contents -->
+    <nav class="toc-fixed" id="tableOfContents">
+      <div class="mb-8">
+        <h3 class="text-lg font-serif font-bold text-primary mb-4">目录</h3>
+        <div class="space-y-1">
+          <a href="#executive-summary" class="toc-link text-sm">执行摘要</a>
+          <a href="#core-value" class="toc-link text-sm">核心价值主张</a>
+          <a href="#differentiation" class="toc-link text-sm">差异化优势</a>
+          <a href="#pain-points" class="toc-link text-sm">核心痛点解决方案</a>
+          <a href="#target-users" class="toc-link text-sm">目标用户群体</a>
+          <a href="#strategy" class="toc-link text-sm">市场突破策略</a>
+          <a href="#roadmap" class="toc-link text-sm">产品路线图</a>
+          <a href="#conclusion" class="toc-link text-sm">结论展望</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="lg:hidden fixed top-4 left-4 z-50 bg-primary text-white p-2 rounded-lg" id="mobileMenuToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Hero Section with Bento Grid -->
+      <section class="relative min-h-screen bg-secondary">
+        <div class="container mx-auto px-8 py-16">
+          <!-- Bento Grid Layout -->
+          <div class="bento-grid mb-16">
+            <!-- Main Hero Content -->
+            <div class="bento-main rounded-2xl overflow-hidden relative">
+              <img src="https://kimi-web-img.moonshot.cn/img/lgpic.3d66.com/062b67e63a4fc46764654fe7514c2fa0efbc316c.jpeg!lgt-detail-big" alt="现代简约风格的知识工作台" class="w-full h-full object-cover" size="large" aspect="wide" style="photo" query="现代简约知识工作台" referrerpolicy="no-referrer" data-modified="1" data-score="0.00"/>
+              <div class="absolute inset-0 gradient-overlay flex items-center justify-center">
+                <div class="text-center text-white px-8">
+                  <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-serif font-bold mb-6 leading-tight">
+                    <span class="italic">重塑知识</span>
+                    <br/>
+                    <span class="text-gradient">工作新范式</span>
+                  </h1>
+                  <p class="text-lg sm:text-xl lg:text-2xl font-light opacity-90 max-w-2xl mx-auto">
+                    从效率工具到智能知识资产管理者的战略升级
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Side Panels -->
+            <div class="bento-side-top rounded-2xl p-6 flex flex-col justify-center">
+              <div class="text-center">
+                <div class="text-3xl font-bold text-primary mb-2">12亿+</div>
+                <div class="text-sm text-muted">微信生态用户基础</div>
+              </div>
+            </div>
+
+            <div class="bento-side-bottom rounded-2xl p-6 flex flex-col justify-center">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-accent mb-2">双模型引擎</div>
+                <div class="text-sm text-muted">混元 + DeepSeek-R1</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Executive Summary -->
+          <section id="executive-summary" class="fade-in">
+            <div class="highlight-box p-8 rounded-2xl">
+              <h2 class="text-3xl font-serif font-bold text-primary mb-6">执行摘要</h2>
+              <div class="prose prose-lg max-w-none">
+                <p class="text-lg leading-relaxed mb-4">
+                  为了让ima.copilot成为国民级AI工具，其核心策略是<strong>从一个效率工具进化为用户的&#34;智能知识资产管理者&#34;</strong>。通过构建以&#34;智能信息中枢&#34;和&#34;AI行业分析师&#34;为核心的功能矩阵，深度解决用户在学习和办公场景中&#34;零散信息整合&#34;与&#34;行业报告读取分析&#34;的两大痛点。
+                </p>
+                <p class="text-lg leading-relaxed">
+                  其关键差异化优势在于<strong>技术层面</strong>的&#34;双模型引擎&#34;（腾讯混元大模型+DeepSeek-R1模型）驱动，<strong>生态层面</strong>与微信生态的无缝整合，以及<strong>市场层面</strong>的免费策略与快速迭代。初期应聚焦于金融、法律、科研等知识密集型行业的专业人士，打造标杆案例，形成口碑效应。
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Core Value Proposition -->
+      <section id="core-value" class="py-16 px-8">
+        <div class="container mx-auto max-w-4xl">
+          <div class="fade-in">
+            <h2 class="text-4xl font-serif font-bold text-primary mb-8">核心价值主张与差异化优势分析</h2>
+
+            <div class="mb-12">
+              <h3 class="text-2xl font-serif font-semibold text-primary mb-6">核心价值主张：从&#34;效率工具&#34;到&#34;智能知识资产管理者&#34;</h3>
+
+              <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-search text-accent text-xl mr-3"></i>
+                    <h4 class="text-lg font-semibold">搜</h4>
+                  </div>
+                  <p class="text-gray-600">统一检索公域与私域信息，快速精准定位所需内容</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-book-open text-accent text-xl mr-3"></i>
+                    <h4 class="text-lg font-semibold">读</h4>
+                  </div>
+                  <p class="text-gray-600">AI辅助深度阅读，智能摘要、核心观点提炼</p>
+                </div>
+              </div>
+
+              <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-pen-fancy text-accent text-xl mr-3"></i>
+                  <h4 class="text-lg font-semibold">写</h4>
+                </div>
+                <p class="text-gray-600 mb-4">基于知识库辅助创作，生成大纲、草稿和润色</p>
+              </div>
+
+              <blockquote class="border-l-4 border-accent pl-6 italic text-lg text-gray-700 mb-8">
+                &#34;ima.copilot的核心价值在于将零散信息转化为可交互、可增值的智能资产，实现从被动接收信息到主动管理知识的转变。&#34;
+              </blockquote>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Differentiation Advantages -->
+      <section id="differentiation" class="py-16 px-8 bg-secondary">
+        <div class="container mx-auto max-w-6xl">
+          <div class="fade-in">
+            <h2 class="text-4xl font-serif font-bold text-primary mb-12 text-center">关键差异化优势：构建难以复制的竞争壁垒</h2>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+              <!-- Technology Barrier -->
+              <div class="bg-white p-8 rounded-2xl shadow-sm">
+                <div class="text-center mb-6">
+                  <div class="w-16 h-16 bg-gradient-to-br from-accent to-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-cogs text-white text-2xl"></i>
+                  </div>
+                  <h3 class="text-xl font-serif font-semibold">技术壁垒</h3>
+                </div>
+                <h4 class="font-semibold mb-3 text-accent">双模型引擎驱动</h4>
+                <ul class="space-y-2 text-sm text-gray-600">
+                  <li class="flex items-start">
+                    <i class="fas fa-check text-accent mt-1 mr-2 text-xs"></i>
+                    <span>腾讯混元大模型：中文创作与通用推理</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check text-accent mt-1 mr-2 text-xs"></i>
+                    <span>DeepSeek-R1：专业领域深度分析</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check text-accent mt-1 mr-2 text-xs"></i>
+                    <span>精准度与深度超越单一模型</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Ecosystem Barrier -->
+              <div class="bg-white p-8 rounded-2xl shadow-sm">
+                <div class="text-center mb-6">
+                  <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fab fa-weixin text-white text-2xl"></i>
+                  </div>
+                  <h3 class="text-xl font-serif font-semibold">生态壁垒</h3>
+                </div>
+                <h4 class="font-semibold mb-3 text-green-600">微信生态无缝整合</h4>
+                <ul class="space-y-2 text-sm text-gray-600">
+                  <li class="flex items-start">
+                    <i class="fas fa-check text-green-500 mt-1 mr-2 text-xs"></i>
+                    <span>12亿+用户生态连接</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check text-green-500 mt-1 mr-2 text-xs"></i>
+                    <span>微信公众号优质内容源</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check text-green-500 mt-1 mr-2 text-xs"></i>
+                    <span>ima知识库小程序便捷收集</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Market Barrier -->
+              <div class="bg-white p-8 rounded-2xl shadow-sm">
+                <div class="text-center mb-6">
+                  <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-rocket text-white text-2xl"></i>
+                  </div>
+                  <h3 class="text-xl font-serif font-semibold">市场壁垒</h3>
+                </div>
+                <h4 class="font-semibold mb-3 text-blue-600">免费策略与快速迭代</h4>
+                <ul class="space-y-2 text-sm text-gray-600">
+                  <li class="flex items-start">
+                    <i class="fas fa-check text-blue-500 mt-1 mr-2 text-xs"></i>
+                    <span>降低用户使用门槛</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check text-blue-500 mt-1 mr-2 text-xs"></i>
+                    <span>快速获取市场份额</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check text-blue-500 mt-1 mr-2 text-xs"></i>
+                    <span>基于反馈的持续优化</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Pain Points Solutions -->
+      <section id="pain-points" class="py-16 px-8">
+        <div class="container mx-auto max-w-6xl">
+          <div class="fade-in">
+            <h2 class="text-4xl font-serif font-bold text-primary mb-12 text-center">核心痛点解决方案：功能迭代规划</h2>
+
+            <!-- Pain Point 1 -->
+            <div class="mb-16">
+              <h3 class="text-2xl font-serif font-semibold text-primary mb-8">痛点一：零散信息整合</h3>
+
+              <div class="bg-red-50 border-l-4 border-red-400 p-6 mb-8">
+                <h4 class="text-lg font-semibold text-red-800 mb-2">现状挑战</h4>
+                <p class="text-red-700">信息来源分散、格式多样、难以统一管理，用户陷入&#34;信息收集&#34;泥潭</p>
+              </div>
+
+              <div class="bg-green-50 border-l-4 border-green-400 p-6 mb-8">
+                <h4 class="text-lg font-semibold text-green-800 mb-4">解决方案：构建&#34;智能信息中枢&#34;</h4>
+                <div class="grid md:grid-cols-3 gap-6">
+                  <div class="bg-white p-4 rounded-lg">
+                    <h5 class="font-semibold text-green-700 mb-2">增强信息捕获</h5>
+                    <p class="text-sm text-gray-600">浏览器插件、桌面客户端、OCR技术等多渠道捕获</p>
+                  </div>
+                  <div class="bg-white p-4 rounded-lg">
+                    <h5 class="font-semibold text-green-700 mb-2">智能分类标签</h5>
+                    <p class="text-sm text-gray-600">AI自动分析内容，智能推荐分类和标签</p>
+                  </div>
+                  <div class="bg-white p-4 rounded-lg">
+                    <h5 class="font-semibold text-green-700 mb-2">知识图谱关联</h5>
+                    <p class="text-sm text-gray-600">自动分析语义关系，构建个人知识网络</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pain Point 2 -->
+            <div class="mb-16">
+              <h3 class="text-2xl font-serif font-semibold text-primary mb-8">痛点二：行业报告读取与分析</h3>
+
+              <div class="bg-red-50 border-l-4 border-red-400 p-6 mb-8">
+                <h4 class="text-lg font-semibold text-red-800 mb-2">现状挑战</h4>
+                <p class="text-red-700">报告冗长、数据密集、分析耗时耗力，传统人工方式效率低下</p>
+              </div>
+
+              <div class="bg-blue-50 border-l-4 border-blue-400 p-6 mb-8">
+                <h4 class="text-lg font-semibold text-blue-800 mb-4">解决方案：打造&#34;AI行业分析师&#34;</h4>
+                <div class="space-y-4">
+                  <div class="bg-white p-4 rounded-lg flex items-start">
+                    <i class="fas fa-file-alt text-blue-600 text-xl mr-4 mt-1"></i>
+                    <div>
+                      <h5 class="font-semibold text-blue-700 mb-1">深度报告解读</h5>
+                      <p class="text-sm text-gray-600">一键生成摘要、核心观点与思维导图</p>
+                    </div>
+                  </div>
+                  <div class="bg-white p-4 rounded-lg flex items-start">
+                    <i class="fas fa-chart-line text-blue-600 text-xl mr-4 mt-1"></i>
+                    <div>
+                      <h5 class="font-semibold text-blue-700 mb-1">数据提取可视化</h5>
+                      <p class="text-sm text-gray-600">自动提取关键数据并生成图表</p>
+                    </div>
+                  </div>
+                  <div class="bg-white p-4 rounded-lg flex items-start">
+                    <i class="fas fa-balance-scale text-blue-600 text-xl mr-4 mt-1"></i>
+                    <div>
+                      <h5 class="font-semibold text-blue-700 mb-1">多报告对比分析</h5>
+                      <p class="text-sm text-gray-600">支持横向对比与差异洞察</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Target Users -->
+      <section id="target-users" class="py-16 px-8 bg-secondary">
+        <div class="container mx-auto max-w-6xl">
+          <div class="fade-in">
+            <h2 class="text-4xl font-serif font-bold text-primary mb-12 text-center">目标用户与市场突破策略</h2>
+
+            <h3 class="text-2xl font-serif font-semibold text-primary mb-8">优先服务的核心用户群体</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8 mb-12">
+              <!-- Knowledge-Intensive Professionals -->
+              <div class="bg-white p-8 rounded-2xl shadow-sm">
+                <h4 class="text-xl font-serif font-semibold text-primary mb-6 flex items-center">
+                  <i class="fas fa-graduation-cap text-accent mr-3"></i>
+                  知识密集型行业专业人士
+                </h4>
+
+                <div class="space-y-4">
+                  <div class="border-l-3 border-yellow-400 pl-4">
+                    <h5 class="font-semibold text-gray-800">金融分析师</h5>
+                    <p class="text-sm text-gray-600">处理财报、行业研报，需要快速分析大量金融数据</p>
+                  </div>
+
+                  <div class="border-l-3 border-blue-400 pl-4">
+                    <h5 class="font-semibold text-gray-800">法律从业者</h5>
+                    <p class="text-sm text-gray-600">查阅法规、分析案例，需要精准的法律信息检索</p>
+                  </div>
+
+                  <div class="border-l-3 border-green-400 pl-4">
+                    <h5 class="font-semibold text-gray-800">科研人员与学生</h5>
+                    <p class="text-sm text-gray-600">管理文献、撰写论文，需要高效的学术研究工具</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Enterprise Users -->
+              <div class="bg-white p-8 rounded-2xl shadow-sm">
+                <h4 class="text-xl font-serif font-semibold text-primary mb-6 flex items-center">
+                  <i class="fas fa-building text-accent mr-3"></i>
+                  企业办公与管理人员
+                </h4>
+
+                <div class="space-y-4">
+                  <div class="border-l-3 border-purple-400 pl-4">
+                    <h5 class="font-semibold text-gray-800">市场营销人员</h5>
+                    <p class="text-sm text-gray-600">竞品分析、市场趋势洞察，需要快速掌握市场动态</p>
+                  </div>
+
+                  <div class="border-l-3 border-indigo-400 pl-4">
+                    <h5 class="font-semibold text-gray-800">项目管理者</h5>
+                    <p class="text-sm text-gray-600">整合项目资料、生成进度报告，需要高效的团队协作</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Strategy -->
+      <section id="strategy" class="py-16 px-8">
+        <div class="container mx-auto max-w-6xl">
+          <div class="fade-in">
+            <h2 class="text-4xl font-serif font-bold text-primary mb-12 text-center">市场突破策略：从核心用户到国民级普及</h2>
+
+            <div class="space-y-12">
+              <!-- Phase 1 -->
+              <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-8 rounded-2xl border border-green-200">
+                <div class="flex items-center mb-6">
+                  <div class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-lg mr-4">1</div>
+                  <h3 class="text-2xl font-serif font-semibold text-green-800">初期：聚焦核心用户，打造标杆案例</h3>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 class="font-semibold text-green-700 mb-2">核心策略</h4>
+                    <p class="text-gray-700 mb-4">聚焦知识密集型行业专业人士，深入工作场景，精准解决痛点</p>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-green-700 mb-2">关键指标</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                      <li>• 用户活跃度（DAU/MAU）</li>
+                      <li>• 知识库创建数量</li>
+                      <li>• 核心功能使用率</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Phase 2 -->
+              <div class="bg-gradient-to-r from-blue-50 to-sky-50 p-8 rounded-2xl border border-blue-200">
+                <div class="flex items-center mb-6">
+                  <div class="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg mr-4">2</div>
+                  <h3 class="text-2xl font-serif font-semibold text-blue-800">中期：拓展至更广泛的企业与个人用户</h3>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 class="font-semibold text-blue-700 mb-2">核心策略</h4>
+                    <p class="text-gray-700 mb-4">推出团队协作功能，开发行业解决方案，扩大市场覆盖面</p>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-blue-700 mb-2">关键指标</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                      <li>• 团队协作空间数量</li>
+                      <li>• 付费用户转化率</li>
+                      <li>• 行业解决方案采用率</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Phase 3 -->
+              <div class="bg-gradient-to-r from-purple-50 to-violet-50 p-8 rounded-2xl border border-purple-200">
+                <div class="flex items-center mb-6">
+                  <div class="w-12 h-12 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold text-lg mr-4">3</div>
+                  <h3 class="text-2xl font-serif font-semibold text-purple-800">长期：依托腾讯生态，实现全民级覆盖</h3>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 class="font-semibold text-purple-700 mb-2">核心策略</h4>
+                    <p class="text-gray-700 mb-4">开放平台能力，深度整合腾讯生态，构建知识工作应用生态</p>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-purple-700 mb-2">关键指标</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                      <li>• 平台开发者数量</li>
+                      <li>• 生态应用丰富度</li>
+                      <li>• AI Agent任务完成率</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Roadmap -->
+      <section id="roadmap" class="py-16 px-8 bg-secondary">
+        <div class="container mx-auto max-w-6xl">
+          <div class="fade-in">
+            <h2 class="text-4xl font-serif font-bold text-primary mb-12 text-center">产品路线图与关键指标</h2>
+
+            <div class="space-y-8">
+              <!-- Timeline Visualization -->
+              <div class="relative">
+                <!-- Timeline Line -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-accent"></div>
+
+                <!-- Timeline Points -->
+                <div class="space-y-16">
+                  <!-- Short Term -->
+                  <div class="flex items-center">
+                    <div class="w-1/2 pr-8 text-right">
+                      <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-serif font-semibold text-primary mb-3">短期（3-6个月）</h3>
+                        <p class="text-gray-600 mb-4">夯实基础，优化核心体验</p>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                          <li>• 增强信息捕获能力</li>
+                          <li>• 提升报告解读准确性</li>
+                          <li>• 优化知识库管理</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="w-8 h-8 bg-accent rounded-full border-4 border-white shadow-lg z-10"></div>
+                    <div class="w-1/2 pl-8"></div>
+                  </div>
+
+                  <!-- Medium Term -->
+                  <div class="flex items-center">
+                    <div class="w-1/2 pr-8"></div>
+                    <div class="w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg z-10"></div>
+                    <div class="w-1/2 pl-8">
+                      <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-serif font-semibold text-primary mb-3">中期（6-12个月）</h3>
+                        <p class="text-gray-600 mb-4">拓展功能，深化应用场景</p>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                          <li>• 推出团队协作功能</li>
+                          <li>• 探索行业解决方案</li>
+                          <li>• 启动商业化尝试</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Long Term -->
+                  <div class="flex items-center">
+                    <div class="w-1/2 pr-8 text-right">
+                      <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-serif font-semibold text-primary mb-3">长期（1年以上）</h3>
+                        <p class="text-gray-600 mb-4">构建生态，引领行业标准</p>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                          <li>• 开放平台API</li>
+                          <li>• 探索AI Agent应用</li>
+                          <li>• 实现全民级覆盖</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="w-8 h-8 bg-purple-500 rounded-full border-4 border-white shadow-lg z-10"></div>
+                    <div class="w-1/2 pl-8"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Success Metrics -->
+              <div class="bg-white p-8 rounded-2xl shadow-sm">
+                <h3 class="text-2xl font-serif font-semibold text-primary mb-6 text-center">关键成功指标</h3>
+                <div class="grid md:grid-cols-3 gap-8">
+                  <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i class="fas fa-users text-green-600 text-2xl"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 mb-2">用户增长</h4>
+                    <p class="text-sm text-gray-600">月活跃用户达到1000万</p>
+                  </div>
+
+                  <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i class="fas fa-heart text-blue-600 text-2xl"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 mb-2">用户粘性</h4>
+                    <p class="text-sm text-gray-600">DAU/MAU比值超过40%</p>
+                  </div>
+
+                  <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i class="fas fa-dollar-sign text-purple-600 text-2xl"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 mb-2">商业价值</h4>
+                    <p class="text-sm text-gray-600">付费转化率达到5%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Conclusion -->
+      <section id="conclusion" class="py-16 px-8">
+        <div class="container mx-auto max-w-4xl">
+          <div class="fade-in text-center">
+            <h2 class="text-4xl font-serif font-bold text-primary mb-8">结论展望</h2>
+
+            <div class="bg-gradient-to-br from-accent/10 to-yellow-50 p-8 rounded-2xl mb-8">
+              <blockquote class="text-xl italic text-gray-700 mb-6">
+                &#34;通过从效率工具向智能知识资产管理者的战略升级，ima.copilot将重塑个人与团队的知识工作流程，最终实现成为国民级AI工具的宏伟愿景。&#34;
+              </blockquote>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+              <div class="text-center">
+                <div class="w-12 h-12 bg-accent text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-target"></i>
+                </div>
+                <h4 class="font-semibold mb-2">明确价值主张</h4>
+                <p class="text-sm text-gray-600">聚焦信息整合与行业分析两大核心痛点</p>
+              </div>
+
+              <div class="text-center">
+                <div class="w-12 h-12 bg-accent text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4 class="font-semibold mb-2">构建竞争壁垒</h4>
+                <p class="text-sm text-gray-600">技术、生态、市场三位一体的差异化优势</p>
+              </div>
+
+              <div class="text-center">
+                <div class="w-12 h-12 bg-accent text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-route"></i>
+                </div>
+                <h4 class="font-semibold mb-2">制定清晰路径</h4>
+                <p class="text-sm text-gray-600">从核心用户到全民普及的渐进式发展策略</p>
+              </div>
+            </div>
+
+            <div class="bg-primary text-white p-8 rounded-2xl">
+              <h3 class="text-2xl font-serif font-semibold mb-4">未来可期</h3>
+              <p class="text-lg leading-relaxed opacity-90">
+                在AI技术快速发展的大背景下，ima.copilot凭借其独特的技术优势、深厚的生态基础、以及清晰的战略规划，
+                必将成为中国AI知识管理领域的领导者，为数亿用户带来全新的知识工作体验。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="bg-primary text-white py-8 px-8">
+        <div class="container mx-auto max-w-4xl text-center">
+          <p class="text-gray-300">
+            本规划基于深度市场调研与用户需求分析，旨在为ima.copilot的产品发展提供战略指导
+          </p>
+          <div class="mt-4 text-sm text-gray-400">
+            <a href="#" class="citation-link text-gray-400 hover:text-white mr-4">数据来源</a>
+            <a href="#" class="citation-link text-gray-400 hover:text-white mr-4">用户调研</a>
+            <a href="#" class="citation-link text-gray-400 hover:text-white">竞品分析</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+        // Scroll Progress Indicator
+        window.addEventListener('scroll', () => {
+            const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            document.getElementById('scrollProgress').style.width = scrolled + '%';
+        });
+
+        // Mobile Menu Toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const toc = document.getElementById('tableOfContents');
+        
+        mobileMenuToggle.addEventListener('click', () => {
+            toc.classList.toggle('mobile-open');
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024) {
+                if (!toc.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                    toc.classList.remove('mobile-open');
+                }
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Close mobile menu after clicking
+                    if (window.innerWidth <= 1024) {
+                        toc.classList.remove('mobile-open');
+                    }
+                }
+            });
+        });
+
+        // Active link highlighting
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -80% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    document.querySelectorAll('.toc-link').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    const activeLink = document.querySelector(`a[href="#${id}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                    }
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('section[id]').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Fade in animation
+        const fadeElements = document.querySelectorAll('.fade-in');
+        const fadeObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        fadeElements.forEach(element => {
+            fadeObserver.observe(element);
+        });
+    </script>
+  
+
+</body></html>
