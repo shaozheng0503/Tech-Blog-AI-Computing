@@ -1,0 +1,86 @@
+根据近一段时间用户反馈，特对基础镜像进行升级，增加一些必要的预置软件，以及增加更加友好的提示，方便用户使用。
+1、关于root根目录维持现状的说明
+由于/root目录中还有很多系统默认的配置信息，如果变更这些配置，可能会导致未来其他不可预料的错误，因此本次暂不修改默认路径，依然不允许用户挂载/root根目录。
+与承平进行过沟通，最终结果依然是暂时不放开/root根目录，但是会放开以 “.” 开头的目录，即允许用户挂载/root/.cache /root/.npc之类的root 二级目录
+同时与面壁的沟通情况看，他们的核心需求不是挂载到某个目录，而是希望能够重用已经安装的应用。对于这种状况，还是建议用户配置完环境之后，关机并保存镜像，然后再开始调试。参考下文： 增加开机控制台声明
+
+2、增加开机控制台声明
+当用户通过webshell/ssh登录云主机后，自动进入/root目录，显示类似以下格式的控制台消息提示：
+[图片]
+- 目录说明
+  
+暂时无法在飞书文档外展示此内容
+- 主机名称 gongji-3854
+  - gongji 固定值
+  - 3845任务号，方便截屏时排查任务
+- 系统配置
+  - CPU
+    - 24核
+  - 内存
+    - 64 GB
+  - GPU
+    - 1
+    - 无
+  - 存储
+    - 系统盘/   ：1% 500MB/50GB
+    - 数据盘/root/code： 1% 5GB/25GB
+- 注意事项（以红色字体显示）
+  - 系统盘主要用于安装操作系统和基础应用工具，关机后数据会自动保存。强烈建议在安装完所有应用后，通过suanli.cn控制台执行【关机并保存镜像】操作，这是保护代码和数据安全的最佳方式。
+  - 强烈建议开通共享存储卷，将存储桶挂载到云主机目录，并将代码/数据/模型等数据资料存放在挂载目录下。即使云主机关机、出现异常，甚至被释放，挂载目录下的数据都能得到完整保护。
+3、已上线基础镜像修改
+3.1 Pytorch系列镜像
+- 增加开机控制台声明
+- 预装vim/nano/net-tools/git
+- 预装modelscope，方便用户下载国内模型 
+- 修改vscode配置，增加以下扩展
+  - nexmoe.monitor-pro  version：0.6.1 扩展地址：https://marketplace.visualstudio.com/items?itemName=nexmoe.monitor-pro
+  - Python
+  - Pylance
+  - Jupyter
+  - Python Debugger
+- 修改JupyterLab配置，增加以下扩展
+  - JupyterLab Debugger
+  - JupyterLab LSP
+  - TOC
+  - LaTex
+  - HTML
+  - Matplotlib
+3.2 Tensorflow系列镜像
+- 增加开机控制台声明
+- 预装vim/nano/net-tools/git
+- 预装modelscope，方便用户下载国内模型 
+- 修改vscode配置，增加以下扩展
+  - nexmoe.monitor-pro  version：0.6.1 扩展地址：https://marketplace.visualstudio.com/items?itemName=nexmoe.monitor-pro
+  - Python
+  - Pylance
+  - Jupyter
+  - Python Debugger
+- 预装Tensor board： https://www.tensorflow.org/tensorboard?hl=zh-cn
+- 修改JupyterLab配置，增加以下扩展
+  - JupyterLab Debugger
+  - JupyterLab LSP
+  - TOC
+  - LaTex
+  - HTML
+  - Matplotlib
+4、新增加镜像
+4.1 paddle3.1.0
+项目地址：https://www.paddlepaddle.org.cn/
+[图片]
+python -m pip install paddlepaddle-gpu==3.1.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu126/
+- 增加开机控制台声明
+- 预装vim/nano/net-tools/git
+- 预装modelscope，方便用户下载国内模型 
+- 修改vscode配置，增加以下扩展
+  - nexmoe.monitor-pro  version：0.6.1 扩展地址：https://marketplace.visualstudio.com/items?itemName=nexmoe.monitor-pro
+  - Python
+  - Pylance
+  - Jupyter
+  - Python Debugger
+- 修改JupyterLab配置，增加以下扩展
+  - JupyterLab Debugger
+  - JupyterLab LSP
+  - TOC
+  - LaTex
+  - HTML
+  - Matplotlib
