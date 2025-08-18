@@ -4,6 +4,18 @@
 
 ## 📚 最新更新
 
+### 2025年8月 - 面壁智能镜像服务架构设计
+
+**新增内容：**
+- [面壁智能镜像服务架构设计文档](面壁智能镜像服务架构设计文档.md) - 完整的架构设计、部署步骤和代码示例
+
+**技术亮点：**
+- 轻量级 mirror-agent Pod 设计（0.5核/0.5GB）
+- 用户 K8S 集群与共绩算力 API 的无缝集成
+- 支持用户原有 CI/CD、HPA、VPA、监控体系的零改动迁移
+- 完整的部署配置、监控体系和故障排查指南
+- 开源代码：https://github.com/gongji-io/mirror-agent
+
 ### 2025年8月 - OPPO AI Agent Team 高效智能体研究
 
 **新增内容：**
@@ -53,12 +65,18 @@
 
 ## 🔥 热门内容
 
-### 1. 云主机JupyterLab转Serverless部署
+### 1. 面壁智能镜像服务架构设计
+- 轻量级 mirror-agent Pod 设计（0.5核/0.5GB）
+- 用户 K8S 集群与共绩算力 API 的无缝集成
+- 完整的部署配置、监控体系和故障排查指南
+- 支持用户原有 CI/CD、HPA、VPA、监控体系的零改动迁移
+
+### 2. 云主机JupyterLab转Serverless部署
 - 完整的开发到部署流程
 - 多云平台支持（AWS、阿里云、腾讯云）
 - 详细的API文档和示例代码
 
-### 2. 高效智能体研究 (OPPO AI Agent Team)
+### 3. 高效智能体研究 (OPPO AI Agent Team)
 - 效率与效果权衡的系统性研究
 - 成本通过率指标的创新应用
 - 实用的智能体优化策略
@@ -111,10 +129,11 @@
 
 ## 🔗 相关链接
 
+- [面壁智能 Mirror Agent GitHub](https://github.com/gongji-io/mirror-agent)
 - [OPPO AI Agent Team GitHub](https://github.com/OPPO-PersonalAI/OAgents)
 - [nexmoe/serverless-comfyui](https://github.com/nexmoe/serverless-comfyui)
 - [GAIA Benchmark](https://github.com/GAIA-benchmark/GAIA)
 
 ---
 
-*最后更新时间：2025年8月* 
+*最后更新时间：2025年8月（持续更新中）* 
